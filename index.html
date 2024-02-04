@@ -1,0 +1,148 @@
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<canvas></canvas>
+
+<script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 600;
+    canvas.height = 400;
+
+    const gravidade = 0.5;
+
+    class Player {
+
+        constructor() {
+            this.x = 50;
+            this.y = 50;
+            this.size = 50;
+            this.velocidadeY = 2
+            this.gravidade = gravidade;
+        }
+
+        draw() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        update() {
+            this.draw();
+
+            this.y += this.velocidadeY;
+
+            if (this.y + this.size + this.velocidadeY < canvas.height)
+                this.velocidadeY += gravidade;
+            else
+                this.velocidadeY = 0
+
+        }
+
+        pulo() {
+            const forcaDoPulo = -5;
+            this.velocidadeY = forcaDoPulo
+        }
+
+        start() {
+            this.x = 50;
+            this.y = 50;
+        }
+    }
+
+    class Pipe {
+
+        constructor() {
+            this.width = 50;
+            this.x = canvas.width - this.width;
+            this.velocidadeX = 3;
+            this.movimentos = 0;
+
+            this.abertura = 100;
+            const posicaoDeCorte = (Math.random() * (canvas.height / 3 - this.abertura / 2)) + canvas.height / 3;
+            this.pipeSuperior = posicaoDeCorte - this.abertura / 2;
+            this.pipeInferior = posicaoDeCorte + this.abertura / 2;
+        }
+
+        draw() {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(this.x, 0, this.width, this.pipeSuperior);
+
+            ctx.fillStyle = 'green';
+            ctx.fillRect(this.x, this.pipeInferior, this.width, canvas.height - this.pipeInferior);
+        }
+
+        update() {
+            this.draw();
+
+            this.x -= this.velocidadeX;
+            this.checkCollision();
+
+            this.movimentos++;
+            if (this.movimentos == 80)
+                pipes.push(new Pipe())
+        }
+
+        checkCollision() {
+            if (
+                (
+                    this.pipeSuperior >= player.y ||
+                    this.pipeInferior <= player.y + player.size
+                ) &&
+                this.x <= player.x + player.size &&
+                this.x + this.width >= player.x
+            ) {
+                gameover = true
+            }
+        }
+    }
+
+    const player = new Player();
+    let pipes = []
+    let jogoComecou = false;
+    let gameover = false;
+
+    function animate() {
+        if (!gameover)
+            requestAnimationFrame(animate);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        player.update()
+
+        pipes.forEach(item => item.update())
+    }
+
+    function start() {
+        jogoComecou = true;
+        gameover = false;
+        pipes = [new Pipe()]
+        player.start();
+        animate();
+    }
+
+    function menu() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const texto = "Clique para começar";
+        ctx.fillStyle = 'black';
+        ctx.font = '30px Arial'
+        const widthText = ctx.measureText(texto).width;
+        ctx.fillText(texto, canvas.width / 2 - widthText / 2, canvas.height / 2);
+    }
+    menu();
+
+    window.addEventListener('click', () => {
+        if (!jogoComecou || gameover)
+            start();
+        else
+            player.pulo();
+    })
+
+
+</script>
